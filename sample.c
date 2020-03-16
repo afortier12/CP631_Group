@@ -10,10 +10,12 @@ int main(int argc, char* argv[]) {
     
     printf("opening image\n");
     //load image from file
-    if (Image_load(&img, "sky.jpg") != 0){
+    if (Image_load(&img, "cube.jpg") != 0){
         printf("Error in loading the image\n");       
         return -1;
     }
+
+    mtx = malloc(sizeof(Matrix));
 
     printf("image to matrix\n");
     // Convert the image to Matrix
@@ -67,8 +69,8 @@ int main(int argc, char* argv[]) {
 
 
     // Save images
-    Image_save(&img_Gray, "sky_gray.png");
-    Image_save(&img_RGB, "sky_RGB.png");
+    Image_save(&img_Gray, "cube_gray.png");
+    Image_save(&img_RGB, "cube_RGB.png");
  
 
     // Release memory
