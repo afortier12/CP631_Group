@@ -33,20 +33,13 @@ int main(int argc, char* argv[]) {
     	for (int j = 0; j < mtx->width; j++) {
 			
 			scaled = ceil(*(mtx->R + i*mtx->width + j)*1.2);
-			if(i==1 && j>282 && j<332) printf("R=%d, scaled=%d ",*(mtx->R + i*mtx->width + j), scaled);
       		*(mtx->R + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
 			scaled = ceil(*(mtx->G + i*mtx->width + j)*1.2);
-			if(i==1 && j>282 && j<332) printf("G=%d, scaled=%d ",*(mtx->G + i*mtx->width + j), scaled);
       		*(mtx->G + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
 			scaled = ceil(*(mtx->B + i*mtx->width + j)*1.2);
-			if(i==1 && j>282 && j<332) printf("B=%d, scaled=%d ",*(mtx->B + i*mtx->width + j), scaled);
       		*(mtx->B + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
 			scaled = ceil(*(mtx->Gy + i*mtx->width + j)*1.2);
-			if(i==1 && j>282 && j<332) printf("Gy=%d, scaled=%d\n",*(mtx->Gy + i*mtx->width + j), scaled);
       		*(mtx->Gy + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
-
-
-			if(i==1 && j>282 && j<332) printf("R=%d, G=%d, B=%d, Gy=%d\n", *(mtx->R + i*mtx->width + j), *(mtx->G + i*mtx->width + j), *(mtx->B + i*mtx->width + j), *(mtx->Gy + i*mtx->width + j));
     	}
   	}
 	/******************************************************************************/

@@ -18,7 +18,6 @@ int Image_load(Image *img, const char *fname) {
     if((img->data = stbi_load(fname, &img->width, &img->height, &img->channels, 0)) != NULL) {
         img->size = img->width * img->height * img->channels;
         img->allocation_ = ALLOCATED;
-		printf("channels=%d\n", img->channels);
         return 0;
     }else{
         return -1;    
@@ -43,14 +42,12 @@ int Image_to_Matrix(const Image *img, Matrix *mtx) {
 		mtx->channels = img->channels;
     }
     
-    printf("height=%d, width=%d\n", mtx->height, mtx->width); 
     mtx->R = malloc(mtx->width * mtx->height);
 	mtx->G = malloc(mtx->width * mtx->height);
 	mtx->B = malloc(mtx->width * mtx->height);
 	mtx->A = malloc(mtx->width * mtx->height);
 	mtx->Gy = malloc(mtx->width * mtx->height);
 
-    printf("malloc ok\n");
     if(mtx->R == NULL || mtx->G == NULL || mtx->B == NULL || mtx->A == NULL || mtx->Gy == NULL) {
         mtx->allocation_ = NO_ALLOCATION;
         printf("Error in creating matrix\n");
@@ -67,7 +64,6 @@ int Image_to_Matrix(const Image *img, Matrix *mtx) {
 		if(img->channels == 4) *(mtx->A+i) = (uint8_t) *(p+3);  				//A - transparency
 		i++;
     }
-	printf("i=%d\n", i);
 
     return 0;
 
