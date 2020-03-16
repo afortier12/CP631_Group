@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
     
     printf("opening image\n");
     //load image from file
-    if (Image_load(&img, "sky.jpg") != 0){
+    if (Image_load(&img, "cube.png") != 0){
         printf("Error in loading the image\n");       
         return -1;
     }
@@ -27,8 +27,9 @@ int main(int argc, char* argv[]) {
 
 
 	/*******************sample code for brightening image*************************/
-	for (int i = 0; i < mtx->height; i++) {
-    	for (int j = 0; j < mtx->width; j++) {
+  int i, j;
+	for (i = 0; i < mtx->height; i++) {
+    	for (j = 0; j < mtx->width; j++) {
 			
 			scaled = ceil(*(mtx->R + i*mtx->width + j)*1.2);
 			if(i==1 && j>282 && j<332) printf("R=%d, scaled=%d ",*(mtx->R + i*mtx->width + j), scaled);
@@ -67,8 +68,8 @@ int main(int argc, char* argv[]) {
 
 
     // Save images
-    Image_save(&img_Gray, "sky_gray.png");
-    Image_save(&img_RGB, "sky_RGB.png");
+    Image_save(&img_Gray, "cube_gray.png");
+    Image_save(&img_RGB, "cube_RGB.png");
  
 
     // Release memory
