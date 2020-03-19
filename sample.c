@@ -2,11 +2,19 @@
 #include <stdlib.h>
 #include <math.h>
 #include "image.h"
+#include "gaussian.h"
+
+#define kernel_dim 10
+#define kernel_sigma 5
+#define kernel_size ((kernel_dim*2+1)*(kernel_dim*2+1))
+float kernel[kernel_size];
 
 int main(int argc, char* argv[]) {
     Image img, img_RGB, img_Gray;
     Matrix *mtx;
 	int scaled;
+
+    
     
     printf("opening image\n");
     //load image from file
@@ -14,6 +22,8 @@ int main(int argc, char* argv[]) {
         printf("Error in loading the image\n");       
         return -1;
     }
+
+    mtx = malloc(sizeof(Matrix));
 
     printf("image to matrix\n");
     // Convert the image to Matrix
@@ -25,32 +35,32 @@ int main(int argc, char* argv[]) {
 	//original image no longer needed
     Image_free(&img);
 
-
 	/*******************sample code for brightening image*************************/
-  int i, j;
-	for (i = 0; i < mtx->height; i++) {
-    	for (j = 0; j < mtx->width; j++) {
+    // int i, j;
+	// for (i = 0; i < mtx->height; i++) {
+    // 	for (j = 0; j < mtx->width; j++) {
 			
-			scaled = ceil(*(mtx->R + i*mtx->width + j)*1.2);
-			if(i==1 && j>282 && j<332) printf("R=%d, scaled=%d ",*(mtx->R + i*mtx->width + j), scaled);
-      		*(mtx->R + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
-			scaled = ceil(*(mtx->G + i*mtx->width + j)*1.2);
-			if(i==1 && j>282 && j<332) printf("G=%d, scaled=%d ",*(mtx->G + i*mtx->width + j), scaled);
-      		*(mtx->G + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
-			scaled = ceil(*(mtx->B + i*mtx->width + j)*1.2);
-			if(i==1 && j>282 && j<332) printf("B=%d, scaled=%d ",*(mtx->B + i*mtx->width + j), scaled);
-      		*(mtx->B + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
-			scaled = ceil(*(mtx->Gy + i*mtx->width + j)*1.2);
-			if(i==1 && j>282 && j<332) printf("Gy=%d, scaled=%d\n",*(mtx->Gy + i*mtx->width + j), scaled);
-      		*(mtx->Gy + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
+	// 		scaled = ceil(*(mtx->R + i*mtx->width + j)*1.2);
+	// 		if(i==1 && j>282 && j<332) printf("R=%d, scaled=%d ",*(mtx->R + i*mtx->width + j), scaled);
+    //   		*(mtx->R + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
+	// 		scaled = ceil(*(mtx->G + i*mtx->width + j)*1.2);
+	// 		if(i==1 && j>282 && j<332) printf("G=%d, scaled=%d ",*(mtx->G + i*mtx->width + j), scaled);
+    //   		*(mtx->G + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
+	// 		scaled = ceil(*(mtx->B + i*mtx->width + j)*1.2);
+	// 		if(i==1 && j>282 && j<332) printf("B=%d, scaled=%d ",*(mtx->B + i*mtx->width + j), scaled);
+    //   		*(mtx->B + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
+	// 		scaled = ceil(*(mtx->Gy + i*mtx->width + j)*1.2);
+	// 		if(i==1 && j>282 && j<332) printf("Gy=%d, scaled=%d\n",*(mtx->Gy + i*mtx->width + j), scaled);
+    //   		*(mtx->Gy + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
 
 
-			if(i==1 && j>282 && j<332) printf("R=%d, G=%d, B=%d, Gy=%d\n", *(mtx->R + i*mtx->width + j), *(mtx->G + i*mtx->width + j), *(mtx->B + i*mtx->width + j), *(mtx->Gy + i*mtx->width + j));
-    	}
-  	}
+	// 		if(i==1 && j>282 && j<332) printf("R=%d, G=%d, B=%d, Gy=%d\n", *(mtx->R + i*mtx->width + j), *(mtx->G + i*mtx->width + j), *(mtx->B + i*mtx->width + j), *(mtx->Gy + i*mtx->width + j));
+    // 	}
+  	// }
 	/******************************************************************************/
 
-
+    Get_Gaussian_Kernel(kernel, kernel_dim, kernel_sigma);
+    Apply_Gaussian_Blur_Filter(kernel, kernel_dim, mtx);
 
     printf("matrix to RGB image\n");
     //Convert RGB matrices to image
