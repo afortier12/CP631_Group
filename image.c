@@ -36,7 +36,7 @@ int Image_to_Matrix(const Image *img, Matrix *mtx) {
         return -1;
     }
 
-    if(img->data != NULL) {
+    if(img->data != NULL) {       
         mtx->width = img->width;
         mtx->height = img->height;
 		mtx->channels = img->channels;
@@ -56,7 +56,8 @@ int Image_to_Matrix(const Image *img, Matrix *mtx) {
 
     mtx->allocation_ = ALLOCATED;
     
-    for(uint8_t *p = img->data; p != img->data + img->size; p += img->channels) {	
+    uint8_t *p;
+    for(p = img->data; p != img->data + img->size; p += img->channels) {	
         *(mtx->R+i) = (uint8_t) *p;  					//R
         *(mtx->G+i) = (uint8_t) *(p+1);  				//B
         *(mtx->B+i) = (uint8_t) *(p+2);  				//G
@@ -93,7 +94,8 @@ int Matrix_to_RGB_Image(Matrix *mtx, Image *img){
         img->allocation_ = ALLOCATED;
     }
 
-    for(uint8_t *p = img->data; p != img->data + img->size; p += img->channels) {
+    uint8_t *p;
+    for(p = img->data; p != img->data + img->size; p += img->channels) {
         *p = (uint8_t) *(mtx->R+i);  					//R
         *(p+1) = (uint8_t) *(mtx->G+i);  				//G
         *(p+2) = (uint8_t) *(mtx->B+i);  				//B
@@ -129,7 +131,8 @@ int Matrix_to_Gray_Image(Matrix *mtx, Image *img) {
         img->allocation_ = ALLOCATED;
     }
     
-    for(uint8_t *p = img->data; p != img->data + img->size; p += img->channels) {
+    uint8_t *p;
+    for(p = img->data; p != img->data + img->size; p += img->channels) {
         *p = *(p+1) = *(p+2) = (uint8_t) *(mtx->Gy+i);  	//gray
 		if (img->channels==4) *(p+3) = (uint8_t) *(mtx->A+i);
 		i++;
