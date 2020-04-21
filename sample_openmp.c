@@ -1,25 +1,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "image.h"
 #include "gaussian.h"
 #include "omp.h"
-
-#define kernel_dim 10
-#define kernel_sigma 5
-#define kernel_size ((kernel_dim*2+1)*(kernel_dim*2+1))
-float kernel[kernel_size];
 
 int main(int argc, char* argv[]) {
     Image img, img_RGB, img_Gray;
     Matrix *mtx;
     double start, finish;
+    int kernel_dim = 10;
+    double kernel_sigma = 5;
+    size_t kernel_size;
+    float *kernel;
 
-    
+    /* get matrix dimension */
+    if(argc == 4){
+	    printf("arguments supplied are: filename = %s kernel dimension = %s, kernel sigma = %s\n", argv[1], argv[2], argv[3]);
+	    kernel_dim = atoi(argv[2]);
+        kernel_sigma = atof(argv[3]);
+	    if (kernel_dim == 0){
+        	printf("Please enter a valid integer for kernel dimension between 5 and 100 as an argument\n");
+	        return -1;
+	    } else if( ((int)kernel_sigma) > (kernel_dim/2) || kernel_sigma < 3.0){
+	        printf("Please enter a double for kernel sigma that is between 3 and %d (half of kernel dimension)\n", kernel_dim/2);
+	        return -1;
+	    }
+    } else {
+        printf("Please provide filename , kernel dimension and kernel sigma\nUsage: %s filename dimension sigma ,\n \twhere dimension and sigma are integeres\n", argv[0]);
+	    return -1;
+    }
+
+    kernel_size = (kernel_dim*2+1)*(kernel_dim*2+1)*sizeof(float);
+    kernel = (float *) malloc(kernel_size);
     
     printf("opening image\n");
     //load image from file
-    if (Image_load(&img, "cube_640x480.png") != 0){
+    if (Image_load(&img, argv[1]) != 0){
         printf("Error in loading the image\n");       
         return -1;
     }
@@ -74,6 +92,7 @@ int main(int argc, char* argv[]) {
     Image_free(&img_RGB);
  
     Matrix_free(mtx);
+    free(kernel);
 
     return 0;
 }

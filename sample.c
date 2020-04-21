@@ -1,25 +1,45 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "image.h"
 #include "gaussian.h"
-
-#define kernel_dim 10
-#define kernel_sigma 5
-#define kernel_size ((kernel_dim*2+1)*(kernel_dim*2+1))
-float kernel[kernel_size];
+#include "omp.h"
 
 int main(int argc, char* argv[]) {
     Image img, img_RGB, img_Gray;
     Matrix *mtx;
-	int scaled;
+    double start, finish;
+    int kernel_dim = 10;
+    int kernel_sigma = 5;
+    int kernel_size;
+    float *kernel;
 
-    
+    /* get matrix dimension */
+    if(argc == 4){
+	    printf("arguments supplied are: filename = %s kernel dimension = %s, kernel sigma = %s\n", argv[1], argv[2], argv[3]);
+	    kernel_dim = atoi(argv[2]);
+        kernel_sigma = atoi(argv[3]);
+	    if (kernel_dim == 0){
+        	printf("Please enter a valid integer for kernel dimension between 5 and 100 as an argument\n");
+	        return -1;
+	    } else if( kernel_sigma > (kernel_dim/2) || kernel_sigma < 3){
+	        printf("Please enter an integer for kernel sigma that is between 3 and %d (half of kernel dimension)\n", kernel_dim/2);
+	        return -1;
+	    }
+    } else {
+        printf("Please provide filename , kernel dimension and kernel sigma\nUsage: %s filename dimension sigma ,\n \twhere dimension and sigma are integeres\n", argv[0]);
+	    return -1;
+    }
+   
+    kernel_size = (kernel_dim*2+1)*(kernel_dim*2+1)*sizeof(float);
+    kernel = (float *) malloc(kernel_size);
+
     
     printf("opening image\n");
     //load image from file
-    if (Image_load(&img, "cube.png") != 0){
-        printf("Error in loading the image\n");       
+    if (Image_load(&img, argv[1]) != 0){
+        printf("Error in loading the image %s\n", argv[1]);       
         return -1;
     }
 
@@ -35,32 +55,15 @@ int main(int argc, char* argv[]) {
 	//original image no longer needed
     Image_free(&img);
 
-	/*******************sample code for brightening image*************************/
-    // int i, j;
-	// for (i = 0; i < mtx->height; i++) {
-    // 	for (j = 0; j < mtx->width; j++) {
-			
-	// 		scaled = ceil(*(mtx->R + i*mtx->width + j)*1.2);
-	// 		if(i==1 && j>282 && j<332) printf("R=%d, scaled=%d ",*(mtx->R + i*mtx->width + j), scaled);
-    //   		*(mtx->R + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
-	// 		scaled = ceil(*(mtx->G + i*mtx->width + j)*1.2);
-	// 		if(i==1 && j>282 && j<332) printf("G=%d, scaled=%d ",*(mtx->G + i*mtx->width + j), scaled);
-    //   		*(mtx->G + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
-	// 		scaled = ceil(*(mtx->B + i*mtx->width + j)*1.2);
-	// 		if(i==1 && j>282 && j<332) printf("B=%d, scaled=%d ",*(mtx->B + i*mtx->width + j), scaled);
-    //   		*(mtx->B + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
-	// 		scaled = ceil(*(mtx->Gy + i*mtx->width + j)*1.2);
-	// 		if(i==1 && j>282 && j<332) printf("Gy=%d, scaled=%d\n",*(mtx->Gy + i*mtx->width + j), scaled);
-    //   		*(mtx->Gy + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
 
-
-	// 		if(i==1 && j>282 && j<332) printf("R=%d, G=%d, B=%d, Gy=%d\n", *(mtx->R + i*mtx->width + j), *(mtx->G + i*mtx->width + j), *(mtx->B + i*mtx->width + j), *(mtx->Gy + i*mtx->width + j));
-    // 	}
-  	// }
-	/******************************************************************************/
+    //record starting time for measurement of execution time        
+    start = omp_get_wtime(); 
 
     Get_Gaussian_Kernel(kernel, kernel_dim, kernel_sigma);
     Apply_Gaussian_Blur_Filter(kernel, kernel_dim, mtx);
+
+    //determine execution time
+    finish = omp_get_wtime();
 
     printf("matrix to RGB image\n");
     //Convert RGB matrices to image
@@ -76,6 +79,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    printf("finished in %3.7fs\n", finish-start);
 
     // Save images
     Image_save(&img_Gray, "cube_gray.png");
@@ -87,6 +91,7 @@ int main(int argc, char* argv[]) {
     Image_free(&img_RGB);
  
     Matrix_free(mtx);
+    free(kernel);
 
     return 0;
 }
