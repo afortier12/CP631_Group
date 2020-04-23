@@ -1,24 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "image.h"
-#include "time.h"
 #include "gaussian.h"
-
-#define kernel_dim 30
-#define kernel_sigma 5
-#define kernel_size ((kernel_dim*2+1)*(kernel_dim*2+1))
-float kernel[kernel_size];
+#include "time.h"
 
 int main(int argc, char* argv[]) {
     Image img, img_RGB, img_Gray;
     Matrix *mtx;
-	int scaled;
+
+    int kernel_dim = 10;
+    int kernel_sigma = 5;
+    int kernel_size;
+    float *kernel;
+
+    /* get matrix dimension */
+    if(argc == 4){
+	    printf("arguments supplied are: filename = %s kernel dimension = %s, kernel sigma = %s\n", argv[1], argv[2], argv[3]);
+	    kernel_dim = atoi(argv[2]);
+        kernel_sigma = atoi(argv[3]);
+	    if (kernel_dim == 0){
+        	printf("Please enter a valid integer for kernel dimension between 5 and 100 as an argument\n");
+	        return -1;
+	    } else if( kernel_sigma > (kernel_dim/2) || kernel_sigma < 3){
+	        printf("Please enter an integer for kernel sigma that is between 3 and %d (half of kernel dimension)\n", kernel_dim/2);
+	        return -1;
+	    }
+    } else {
+        printf("Please provide filename , kernel dimension and kernel sigma\nUsage: %s filename dimension sigma ,\n \twhere dimension and sigma are integeres\n", argv[0]);
+	    return -1;
+    }
+   
+    kernel_size = (kernel_dim*2+1)*(kernel_dim*2+1)*sizeof(float);
+    kernel = (float *) malloc(kernel_size);
     
     printf("opening image\n");
     //load image from file
-    if (Image_load(&img, "cube_1620x1215.png") != 0){
-        printf("Error in loading the image\n");       
+    if (Image_load(&img, argv[1]) != 0){
+        printf("Error in loading the image %s\n", argv[1]);       
         return -1;
     }
 
@@ -34,12 +54,16 @@ int main(int argc, char* argv[]) {
 	//original image no longer needed
     Image_free(&img);
 
+
+    //record starting time for measurement of execution time        
+    clock_t start = clock();
+
     Get_Gaussian_Kernel(kernel, kernel_dim, kernel_sigma);
-    clock_t begin = clock();
     Apply_Gaussian_Blur_Filter(kernel, kernel_dim, mtx);
-    clock_t end = clock();
-    double time_elapsed = (double)(end - begin) / CLOCKS_PER_SEC;
-    printf("Finished in %3.7fs\n", time_elapsed);
+
+    //determine execution time
+    clock_t finish = clock();
+    double time_elapsed = (double)(finish - start)/CLOCKS_PER_SEC;
 
     printf("matrix to RGB image\n");
     //Convert RGB matrices to image
@@ -55,6 +79,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    printf("finished in %3.7fs\n", time_elapsed);
 
     // Save images
     Image_save(&img_Gray, "cube_gray.png");
@@ -66,6 +91,7 @@ int main(int argc, char* argv[]) {
     Image_free(&img_RGB);
  
     Matrix_free(mtx);
+    free(kernel);
 
     return 0;
 }
