@@ -5,7 +5,7 @@
 #include "image.h"
 #include "gaussian.h"
 
-#define kernel_dim 10
+#define kernel_dim 30
 #define kernel_sigma 5
 #define kernel_size ((kernel_dim*2+1)*(kernel_dim*2+1))
 float kernel[kernel_size];
@@ -15,24 +15,21 @@ int main(int argc, char* argv[]) {
     Matrix *mtx, *local_mtx, *output_mtx;
     int rank, np, i;
     MPI_Status status;
+    double start, end;
 
     MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &np);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    
-    double start = MPI_Wtime();
-    // Do something here
-    double end = MPI_Wtime();
+
+    mtx = malloc(sizeof(Matrix));
 
     if (rank == 0) {
         printf("opening image\n");
         //load image from file
-        if (Image_load(&img, "cube.png") != 0){
+        if (Image_load(&img, "cube_1620x1215.png") != 0){
             printf("Error in loading the image\n");       
             return -1;
         }
-
-        mtx = malloc(sizeof(Matrix));
 
         printf("image to matrix\n");
         // Convert the image to Matrix
@@ -48,11 +45,14 @@ int main(int argc, char* argv[]) {
 
         mtx->height = mtx->height - mtx->height % np;
     }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    start = MPI_Wtime();
      
     MPI_Bcast(&kernel, kernel_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&mtx->width, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&mtx->height, 1, MPI_INT, 0, MPI_COMM_WORLD); 
-    printf("Matrix width in Process %d: %d\n", rank, mtx->width);
+    // printf("Matrix width in Process %d: %d\n", rank, mtx->width);
     
     output_mtx = malloc(sizeof(Matrix));
     output_mtx->width = mtx->width;
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 	local_mtx->G = malloc(local_mtx_size);
 	local_mtx->B = malloc(local_mtx_size);
 	local_mtx->Gy = malloc(local_mtx_size);
-    printf("Local Matrix Size in Process %d: %d * %d\n", rank, local_mtx->width, local_mtx->height);
+    // printf("Local Matrix Size in Process %d: %d * %d\n", rank, local_mtx->width, local_mtx->height);
 
     if (rank == 0) {
         local_mtx->R = mtx->R;
@@ -82,17 +82,32 @@ int main(int argc, char* argv[]) {
         local_mtx->Gy = mtx->Gy;
 
         for (i=1; i<np; i++) {
-            MPI_Send(mtx->R + mtx->width * mtx->height / np * i - mtx->width * kernel_dim * 2, local_mtx->width * local_mtx->height, MPI_UINT8_T, i, 0, MPI_COMM_WORLD);
-            MPI_Send(mtx->G + mtx->width * mtx->height / np * i - mtx->width * kernel_dim * 2, local_mtx->width * local_mtx->height, MPI_UINT8_T, i, 1, MPI_COMM_WORLD);
-            MPI_Send(mtx->B + mtx->width * mtx->height / np * i - mtx->width * kernel_dim * 2, local_mtx->width * local_mtx->height, MPI_UINT8_T, i, 2, MPI_COMM_WORLD);
-            MPI_Send(mtx->Gy + mtx->width * mtx->height / np * i - mtx->width * kernel_dim * 2, local_mtx->width * local_mtx->height, MPI_UINT8_T, i, 3, MPI_COMM_WORLD);
+            if (i<np-1) {
+                MPI_Send(mtx->R + mtx->width * mtx->height / np * i - mtx->width * kernel_dim * 2, local_mtx->width * local_mtx->height, MPI_UINT8_T, i, 0, MPI_COMM_WORLD);
+                MPI_Send(mtx->G + mtx->width * mtx->height / np * i - mtx->width * kernel_dim * 2, local_mtx->width * local_mtx->height, MPI_UINT8_T, i, 1, MPI_COMM_WORLD);
+                MPI_Send(mtx->B + mtx->width * mtx->height / np * i - mtx->width * kernel_dim * 2, local_mtx->width * local_mtx->height, MPI_UINT8_T, i, 2, MPI_COMM_WORLD);
+                MPI_Send(mtx->Gy + mtx->width * mtx->height / np * i - mtx->width * kernel_dim * 2, local_mtx->width * local_mtx->height, MPI_UINT8_T, i, 3, MPI_COMM_WORLD);
+            } else {
+                MPI_Send(mtx->R + mtx->width * mtx->height / np * i - mtx->width * kernel_dim * 2, local_mtx->width * local_mtx->height - mtx->width * kernel_dim * 2, MPI_UINT8_T, i, 0, MPI_COMM_WORLD);
+                MPI_Send(mtx->G + mtx->width * mtx->height / np * i - mtx->width * kernel_dim * 2, local_mtx->width * local_mtx->height - mtx->width * kernel_dim * 2, MPI_UINT8_T, i, 1, MPI_COMM_WORLD);
+                MPI_Send(mtx->B + mtx->width * mtx->height / np * i - mtx->width * kernel_dim * 2, local_mtx->width * local_mtx->height - mtx->width * kernel_dim * 2, MPI_UINT8_T, i, 2, MPI_COMM_WORLD);
+                MPI_Send(mtx->Gy + mtx->width * mtx->height / np * i - mtx->width * kernel_dim * 2, local_mtx->width * local_mtx->height - mtx->width * kernel_dim * 2, MPI_UINT8_T, i, 3, MPI_COMM_WORLD);
+            }
         }
     } else {
-        MPI_Recv(local_mtx->R, local_mtx->width * local_mtx->height, MPI_UINT8_T, 0, 0, MPI_COMM_WORLD, &status);
-        MPI_Recv(local_mtx->G, local_mtx->width * local_mtx->height, MPI_UINT8_T, 0, 1, MPI_COMM_WORLD, &status);
-        MPI_Recv(local_mtx->B, local_mtx->width * local_mtx->height, MPI_UINT8_T, 0, 2, MPI_COMM_WORLD, &status);
-        MPI_Recv(local_mtx->Gy, local_mtx->width * local_mtx->height, MPI_UINT8_T, 0, 3, MPI_COMM_WORLD, &status);
+        if (rank < np-1) {
+            MPI_Recv(local_mtx->R, local_mtx->width * local_mtx->height, MPI_UINT8_T, 0, 0, MPI_COMM_WORLD, &status);
+            MPI_Recv(local_mtx->G, local_mtx->width * local_mtx->height, MPI_UINT8_T, 0, 1, MPI_COMM_WORLD, &status);
+            MPI_Recv(local_mtx->B, local_mtx->width * local_mtx->height, MPI_UINT8_T, 0, 2, MPI_COMM_WORLD, &status);
+            MPI_Recv(local_mtx->Gy, local_mtx->width * local_mtx->height, MPI_UINT8_T, 0, 3, MPI_COMM_WORLD, &status);
+        } else {
+            MPI_Recv(local_mtx->R, local_mtx->width * local_mtx->height - mtx->width * kernel_dim * 2, MPI_UINT8_T, 0, 0, MPI_COMM_WORLD, &status);
+            MPI_Recv(local_mtx->G, local_mtx->width * local_mtx->height - mtx->width * kernel_dim * 2, MPI_UINT8_T, 0, 1, MPI_COMM_WORLD, &status);
+            MPI_Recv(local_mtx->B, local_mtx->width * local_mtx->height - mtx->width * kernel_dim * 2, MPI_UINT8_T, 0, 2, MPI_COMM_WORLD, &status);
+            MPI_Recv(local_mtx->Gy, local_mtx->width * local_mtx->height - mtx->width * kernel_dim * 2, MPI_UINT8_T, 0, 3, MPI_COMM_WORLD, &status);
+        }
     }
+
     MPI_Barrier(MPI_COMM_WORLD);
 
     Apply_Gaussian_Blur_Filter(kernel, kernel_dim, local_mtx);
@@ -111,8 +126,10 @@ int main(int argc, char* argv[]) {
     }
     
     MPI_Barrier(MPI_COMM_WORLD);
+    end = MPI_Wtime();
 
     if (rank == 0) {
+        printf("Finished in %3.7fs\n", end-start);
         printf("matrix to RGB image\n");
         //Convert RGB matrices to image
         if (Matrix_to_RGB_Image(output_mtx, &img_RGB) != 0){

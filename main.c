@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include <math.h>
 #include "image.h"
+#include "time.h"
 #include "gaussian.h"
 
-#define kernel_dim 10
+#define kernel_dim 30
 #define kernel_sigma 5
 #define kernel_size ((kernel_dim*2+1)*(kernel_dim*2+1))
 float kernel[kernel_size];
@@ -13,12 +14,10 @@ int main(int argc, char* argv[]) {
     Image img, img_RGB, img_Gray;
     Matrix *mtx;
 	int scaled;
-
-    
     
     printf("opening image\n");
     //load image from file
-    if (Image_load(&img, "cube.png") != 0){
+    if (Image_load(&img, "cube_1620x1215.png") != 0){
         printf("Error in loading the image\n");       
         return -1;
     }
@@ -35,32 +34,12 @@ int main(int argc, char* argv[]) {
 	//original image no longer needed
     Image_free(&img);
 
-	/*******************sample code for brightening image*************************/
-    // int i, j;
-	// for (i = 0; i < mtx->height; i++) {
-    // 	for (j = 0; j < mtx->width; j++) {
-			
-	// 		scaled = ceil(*(mtx->R + i*mtx->width + j)*1.2);
-	// 		if(i==1 && j>282 && j<332) printf("R=%d, scaled=%d ",*(mtx->R + i*mtx->width + j), scaled);
-    //   		*(mtx->R + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
-	// 		scaled = ceil(*(mtx->G + i*mtx->width + j)*1.2);
-	// 		if(i==1 && j>282 && j<332) printf("G=%d, scaled=%d ",*(mtx->G + i*mtx->width + j), scaled);
-    //   		*(mtx->G + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
-	// 		scaled = ceil(*(mtx->B + i*mtx->width + j)*1.2);
-	// 		if(i==1 && j>282 && j<332) printf("B=%d, scaled=%d ",*(mtx->B + i*mtx->width + j), scaled);
-    //   		*(mtx->B + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
-	// 		scaled = ceil(*(mtx->Gy + i*mtx->width + j)*1.2);
-	// 		if(i==1 && j>282 && j<332) printf("Gy=%d, scaled=%d\n",*(mtx->Gy + i*mtx->width + j), scaled);
-    //   		*(mtx->Gy + i*mtx->width + j) = (uint8_t)(scaled>255)?255:scaled;
-
-
-	// 		if(i==1 && j>282 && j<332) printf("R=%d, G=%d, B=%d, Gy=%d\n", *(mtx->R + i*mtx->width + j), *(mtx->G + i*mtx->width + j), *(mtx->B + i*mtx->width + j), *(mtx->Gy + i*mtx->width + j));
-    // 	}
-  	// }
-	/******************************************************************************/
-
     Get_Gaussian_Kernel(kernel, kernel_dim, kernel_sigma);
+    clock_t begin = clock();
     Apply_Gaussian_Blur_Filter(kernel, kernel_dim, mtx);
+    clock_t end = clock();
+    double time_elapsed = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("Finished in %3.7fs\n", time_elapsed);
 
     printf("matrix to RGB image\n");
     //Convert RGB matrices to image

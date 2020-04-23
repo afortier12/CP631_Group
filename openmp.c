@@ -5,7 +5,7 @@
 #include "gaussian.h"
 #include "omp.h"
 
-#define kernel_dim 10
+#define kernel_dim 30
 #define kernel_sigma 5
 #define kernel_size ((kernel_dim*2+1)*(kernel_dim*2+1))
 float kernel[kernel_size];
@@ -14,12 +14,10 @@ int main(int argc, char* argv[]) {
     Image img, img_RGB, img_Gray;
     Matrix *mtx;
     double start, finish;
-
-    
     
     printf("opening image\n");
     //load image from file
-    if (Image_load(&img, "cube_640x480.png") != 0){
+    if (Image_load(&img, "cube_1620x1215.png") != 0){
         printf("Error in loading the image\n");       
         return -1;
     }

@@ -9,7 +9,7 @@ void Get_Gaussian_Kernel(float* kernel, int dim, double sigma) {
 
 	for (i = -dim; i <= dim; i++) {
 		ii = i + dim;
-		for (int j = -dim; j <= dim; j++) {
+		for (j = -dim; j <= dim; j++) {
 			jj = j + dim;
 			value = (exp(-((i*i) + (j*j)) / (2 * (sigma*sigma)))) / (2 * M_PI*sigma*sigma);
             idx = ii*(dim*2 + 1) + jj;
