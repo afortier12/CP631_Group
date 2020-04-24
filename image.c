@@ -166,27 +166,43 @@ void Image_free(Image *img) {
 
 }
 
+/* initialize memory allocated for matrix
+ *	Inputs:	pointer to Matrix structure 
+ * 	
+*/
+void Matrix_init(Matrix *matrix) {
+    matrix->width = 0;
+    matrix->height = 0;
+    matrix->channels = 0;
+    matrix->R = NULL;
+    matrix->G = NULL;
+    matrix->B = NULL;
+    matrix->A = NULL;
+    matrix->Gy = NULL;
+    matrix->allocation_ = NO_ALLOCATION;
+}
+
 /* release memory allocated for matrix
  *	Inputs:	pointer to Matrix structure 
  * 	
 */
 void Matrix_free(Matrix *matrix) {
-    if(matrix->allocation_ != NO_ALLOCATION && (matrix->R != NULL || matrix->G != NULL || matrix->B != NULL || matrix->Gy != NULL)) {
+    if(matrix->allocation_ != NO_ALLOCATION) {      
+        if (matrix->A != NULL) free(matrix->A);    
         free(matrix->R);
         free(matrix->G);
         free(matrix->B);
-        free(matrix->A);
         free(matrix->Gy);
         matrix->R = NULL;
 		matrix->G = NULL;		
 		matrix->B = NULL;
 		matrix->Gy = NULL;
-		matrix->A = NULL;
         matrix->width = 0;
         matrix->height = 0;
 		matrix->channels = 0;
         matrix->allocation_ = NO_ALLOCATION;
     }
+    free(matrix);
 
 }
 

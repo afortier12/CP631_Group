@@ -77,6 +77,11 @@ void Image_save(const Image *img, const char *fname);
 */
 void Image_free(Image *img);
 
+/* initialize memory allocated for matrix
+ * 	
+*/
+void Matrix_init(Matrix *matrix);
+
 /* release memory allocated for matrix
  *	Inputs:	pointer to Matrix structure 
  * 	
