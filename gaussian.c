@@ -1,3 +1,13 @@
+/* 
+ * CP631 - Group Project
+ * Adam Fortier  
+ * Ashwini Choudhari
+ * Ning Ma
+ * 
+ * gaussian.c
+ * 	serial implementation of gaussian blur functions
+ *  
+*/
 #include <stdio.h>
 #include <math.h>
 #include "gaussian.h"

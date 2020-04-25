@@ -1,8 +1,25 @@
+/* 
+ * CP631 - Group Project
+ * Adam Fortier  
+ * Ashwini Choudhari
+ * Ning Ma
+ * 
+ * gaussian_openmp.h
+ * 	implementation of gaussian blur functions
+ *  using OpenMP
+*/
+
 #include <stdio.h>
 #include <math.h>
 #include "gaussian.h"
 #include "omp.h"
 
+/* get gaussian kernel
+ *	Inputs:	pointer to kernel
+ *			dimension of kernel
+ *			sigma value for kernel
+ * 
+*/
 void Get_Gaussian_Kernel(float* kernel, int dim, double sigma) {
 	double value = 0.0;
 	int i, j = 0;
@@ -21,7 +38,12 @@ void Get_Gaussian_Kernel(float* kernel, int dim, double sigma) {
 	printf("Kernel generated successfully\n");
 }
 
-
+/* apply guassian blur filter
+ *	Inputs:	pointer to kernel
+ *			dimension of kernel
+ *			matrix with image data (output)
+ * 
+*/
 void Apply_Gaussian_Blur_Filter(float* kernel, int dim, Matrix *mtx) {
     int i, j, ii, jj = 0;
     int kernel_width = (dim*2) +1;

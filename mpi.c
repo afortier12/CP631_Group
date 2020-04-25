@@ -1,3 +1,14 @@
+/* 
+ * CP631 - Group Project
+ * Adam Fortier  
+ * Ashwini Choudhari
+ * Ning Ma
+ * 
+ * mpi.c
+ * 	implementation of gaussian blur functions
+ *  using MPI
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -18,6 +29,7 @@ int main(int argc, char* argv[]) {
     int width = 0, height = 0, channels = 0;
 	double start, finish;
 
+	//allocate global and local matrices
     mtx = malloc(sizeof(Matrix));
     Matrix_init(mtx);
     local_mtx = malloc(sizeof(Matrix));
@@ -66,15 +78,6 @@ int main(int argc, char* argv[]) {
             return -1;
         }
 
-        
- /*       printf("\nsent\n");
-        for (i=mtx->height/2; i<mtx->height; i++){
-    	    for (j=0; j<mtx->width; j++){
-                printf("%d ", mtx->A[i*mtx->width + j]);
-    	    }
-            printf("\n");
-        }*/
-       
 
 	    //original image no longer needed
         Image_free(&img);
@@ -84,14 +87,13 @@ int main(int argc, char* argv[]) {
         channels = mtx->channels;
     }
 
-    //determine execution time
-    finish = MPI_Wtime();
-
+	//broadcast calculated data in root to all processes
     MPI_Bcast(&width, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&height, 1, MPI_INT, 0, MPI_COMM_WORLD); 
     MPI_Bcast(&channels, 1, MPI_INT, 0, MPI_COMM_WORLD);  
     //printf("Matrix width in Process %d: %d\n", rank, width);
  
+	//allocate RGBGy arrays
     local_mtx->width = width;
     local_mtx->height = (height/np) + kernel_dim*2;
     local_mtx->R = malloc(local_mtx->width * local_mtx->height * sizeof(MPI_UINT8_T));
@@ -100,7 +102,7 @@ int main(int argc, char* argv[]) {
 	local_mtx->Gy = malloc(local_mtx->width * local_mtx->height * sizeof(MPI_UINT8_T));
     //printf("Local Matrix Size in Process %d: %d * %d\n", rank, local_mtx->width, local_mtx->height);
 
-
+	//initialize boundary of each local matrix to 0
     for (i=0; i<kernel_dim; i++)
 	    for (j=0; j<local_mtx->width; j++){
 		    local_mtx->R[i*local_mtx->width+j]=0;
@@ -117,6 +119,10 @@ int main(int argc, char* argv[]) {
 		    local_mtx->Gy[i*local_mtx->width+j]=0;
 	    } 
     
+	//send global matrix data to local matrices
+	//local matrix is offset by kernel dim to allow
+	//for data from adjacent processes to be copied to 
+	//beginning and end of local matrix	
     offset = kernel_dim*width;
     MPI_Scatter(mtx->R, width * height/np, MPI_BYTE, &(local_mtx->R[offset]), width * height/np, MPI_UINT8_T, 0, MPI_COMM_WORLD);
     MPI_Scatter(mtx->G, width * height/np, MPI_UINT8_T, &(local_mtx->G[offset]), width *height/np, MPI_UINT8_T, 0, MPI_COMM_WORLD);
@@ -194,18 +200,25 @@ int main(int argc, char* argv[]) {
 	//record starting time for measurement of execution time        
     start = MPI_Wtime(); 
 	
+	//allocate kernel
 	kernel_size = (kernel_dim*2+1)*(kernel_dim*2+1);
     kernel = (float *) malloc(kernel_size*sizeof(float));
 
+	//get gaussian kernel
     if (rank == 0)
         Get_Gaussian_Kernel(kernel, kernel_dim, kernel_sigma);
 
+	//broadcast kernel to all processes
     MPI_Bcast(kernel, kernel_size, MPI_FLOAT, 0, MPI_COMM_WORLD); 
 
+	//apply blur filter to local matrices
 	Apply_Gaussian_Blur_Filter(kernel, kernel_dim, local_mtx);
 
+	//kernel no longer needed
     free(kernel);
     
+	//gather local matrix data (without adjacent data at beginning and end)
+	//in root process to global matrix
     offset = (kernel_dim)*(local_mtx->width);
     MPI_Gather(&(local_mtx->R[offset]), width * height / np, MPI_UINT8_T, mtx->R, width * height / np, MPI_UINT8_T, 0, MPI_COMM_WORLD);
     MPI_Gather(&(local_mtx->G[offset]), width * height / np, MPI_UINT8_T, mtx->G, width * height / np, MPI_UINT8_T, 0, MPI_COMM_WORLD);

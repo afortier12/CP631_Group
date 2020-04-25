@@ -1,3 +1,14 @@
+/* 
+ * CP631 - Group Project
+ * Adam Fortier  
+ * Ashwini Choudhari
+ * Ning Ma
+ * 
+ * main.c
+ * 	serial program for calling 
+ *  gaussian blur functions
+ *  
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

@@ -1,3 +1,15 @@
+/* 
+ * CP631 - Group Project
+ * Adam Fortier  
+ * Ashwini Choudhari
+ * Ning Ma
+ * 
+ * openmp.c
+ * 	main program for calling openmp
+ *  gaussian functions
+ *  reads and writes image files
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -17,7 +29,7 @@ int main(int argc, char* argv[]) {
 
     /* get matrix dimension */
     if(argc == 4){
-	    printf("arguments supplied are: filename = %s kernel dimension = %s, kernel sigma = %s\n", argv[1], argv[2], argv[3]);
+	    //printf("arguments supplied are: filename = %s kernel dimension = %s, kernel sigma = %s\n", argv[1], argv[2], argv[3]);
 	    kernel_dim = atoi(argv[2]);
         kernel_sigma = atof(argv[3]);
 	    if (kernel_dim == 0){
@@ -44,7 +56,6 @@ int main(int argc, char* argv[]) {
 
     mtx = malloc(sizeof(Matrix));
 
-
     printf("image to matrix\n");
     // Convert the image to Matrix
     if (Image_to_Matrix(&img, mtx) != 0){
@@ -55,10 +66,10 @@ int main(int argc, char* argv[]) {
 	//original image no longer needed
     Image_free(&img);
 
-    //printf("width=%d, height=%d\n", mtx->width, mtx->height);
     //record starting time for measurement of execution time        
     start = omp_get_wtime(); 
 
+	//call gaussian functions
     Get_Gaussian_Kernel(kernel, kernel_dim, kernel_sigma);
     Apply_Gaussian_Blur_Filter(kernel, kernel_dim, mtx);
 

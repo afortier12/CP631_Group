@@ -1,3 +1,16 @@
+/* 
+ * CP631 - Group Project
+ * Adam Fortier  
+ * Ashwini Choudhari
+ * Ning Ma
+ * 
+ * image.h
+ * 	header for wrapper for stb_image library
+ *  used to load/save images and 
+ *  to convert to/from a matrix structure
+ *
+*/
+
 #pragma once 
 #include <stdlib.h>
 #include <stdint.h>
