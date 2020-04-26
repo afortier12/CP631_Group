@@ -78,6 +78,8 @@ int main(int argc, char* argv[]) {
             return -1;
         }
 
+        // Adjust the height so it can be evenly distributed to each process
+        mtx->height = mtx->height - mtx->height % np;
 
 	    //original image no longer needed
         Image_free(&img);
